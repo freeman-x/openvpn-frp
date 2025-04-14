@@ -9,5 +9,9 @@ services:
       - "1194:1194/udp"
     volumes:
       - ./openvpn-data:/etc/openvpn
-      - ./frpc.ini:/etc/frpc.ini
+      - ./frpc.toml:/etc/frpc.toml
+    environment:
+      - VPN_PORT=1194
+      - VPN_CLIENT_NAME=alice
+      - VPN_PROTOCOL=udp
     restart: unless-stopped
