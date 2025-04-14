@@ -9,7 +9,7 @@
 ## 📦 镜像地址
 
 ```bash
-docker pull <你的 Docker Hub 用户名>/openvpn-frp:latest
+docker pull freemanxyz/openvpn-frp:latest
 ```
 
 ---
@@ -43,7 +43,7 @@ docker run -d \
   -v $(pwd)/openvpn-data:/etc/openvpn \
   -v $(pwd)/frpc.toml:/etc/frp/frpc.toml \
   -p 1194:1194/udp \
-  yourdockerhub/openvpn-frp:latest
+  freemanxyz/openvpn-frp:latest
 ```
 
 ---
