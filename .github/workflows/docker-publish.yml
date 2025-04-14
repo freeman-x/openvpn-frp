@@ -1,6 +1,6 @@
-name: Build and Push openvpn+frp Docker Image
+name: Build and Push openvpn+frp Multi-Arch Docker Image
 
-# 触发条件：推送到 main 分支、PR 合并到 main 或手动触发
+# 当 main 分支发生 push、PR 合并，或手动点击触发 workflow 时运行
 on:
   push:
     branches:
@@ -12,35 +12,35 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # GitHub Actions 使用 Ubuntu 虚拟机执行任务
 
     steps:
-      # 拉取源码
+      # 第一步：拉取项目源码
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 登录 Docker Hub
+      # 第二步：设置支持多平台构建的 Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 第三步：登录 Docker Hub（账号密码从 secrets 中获取）
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # 你的 Docker Hub 用户名
+          password: ${{ secrets.DOCKER_PASSWORD }}  # 你的 Docker Hub 密码
 
-      # 设置执行权限
+      # 第四步：为 entrypoint.sh 添加执行权限（如果有）
       - name: Set execute permissions for entrypoint.sh
         run: chmod +x entrypoint.sh
 
-      # 构建 Docker 镜像
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:v0.1 .
-
-      # 推送 v0.1 镜像
-      - name: Push Docker image with v0.1 tag
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:v0.1
-
-      # 推送 latest 镜像
-      - name: Tag and push latest image
-        run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:v0.1 ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:latest
+      # 第五步：构建并推送支持多架构（amd64 + arm64）的 Docker 镜像
+      - name: Build and push multi-arch Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .  # 使用当前目录作为构建上下文
+          push: true  # 构建完成后自动推送镜像
+          platforms: linux/amd64,linux/arm64  # 支持的平台架构，可加 linux/arm/v7
+          tags: |  # 设置多个 tag
+            ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:v0.1
+            ${{ secrets.DOCKER_USERNAME }}/openvpn-frp:latest
