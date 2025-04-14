@@ -1,0 +1,13 @@
+version: '3'
+services:
+  openvpn-frp:
+    build: .
+    container_name: openvpn-frp
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "1194:1194/udp"
+    volumes:
+      - ./openvpn-data:/etc/openvpn
+      - ./frpc.ini:/etc/frpc.ini
+    restart: unless-stopped
