@@ -1,30 +1,40 @@
-FROM ubuntu:24.04
+# 基于官方的 Alpine Linux 镜像
+FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND=noninteractive
+# 设置环境变量默认值，可以被 docker run 时覆盖
+ENV OVPN_PROTOCOL=udp
+ENV OVPN_PORT=1194
+ENV OVPN_DNS=1.1.1.1
+ENV OVPN_USER=testuser
 
-# 安装必要软件
-RUN apt update && apt install -y \
-    curl iptables openvpn easy-rsa \
-    net-tools expect wget unzip gnupg lsb-release \
+ENV FRPS_SERVER=your.frps.com
+ENV FRPS_PORT=7000
+ENV FRPS_TOKEN=yourtoken
+ENV FRPC_REMOTE_PORT=6000
+
+# 更新并安装所需的依赖项
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    sudo \
+    iproute2 \
+    iputils-ping \
+    openvpn \
     && rm -rf /var/lib/apt/lists/*
 
-# 下载 Nyr 脚本
-COPY openvpn-install.sh /opt/openvpn-install.sh
+# 安装 FRP 客户端
+RUN curl -L https://github.com/fatedier/frp/releases/download/v0.58.0/frp_0.58.0_linux_amd64.tar.gz | tar zx --strip-components=1 -C /usr/local/frp
+
+# 下载并安装 OpenVPN 安装脚本
+RUN curl -L https://github.com/Nyr/openvpn-install/releases/download/v3.1.0/openvpn-install.sh -o /opt/openvpn-install.sh
 RUN chmod +x /opt/openvpn-install.sh
 
-# 下载并解压新版 frp
-ARG FRP_VERSION=0.58.0
-RUN wget -O /tmp/frp.tar.gz https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_arm64.tar.gz \
-    && mkdir -p /usr/local/frp \
-    && tar -xzf /tmp/frp.tar.gz -C /usr/local/frp --strip-components=1 \
-    && rm -rf /tmp/frp.tar.gz
-
-COPY frpc.toml /etc/frpc.toml
+# 复制 entrypoint 脚本到容器
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh /usr/local/frp/frpc
+RUN chmod +x /entrypoint.sh
 
-VOLUME ["/etc/openvpn", "/etc/frpc"]
-
+# 暴露 OpenVPN 默认端口
 EXPOSE 1194/udp
 
+# 设置容器启动时运行 entrypoint 脚本
 ENTRYPOINT ["/entrypoint.sh"]
