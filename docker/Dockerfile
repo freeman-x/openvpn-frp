@@ -27,9 +27,12 @@ RUN apt-get update && \
 RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
     chmod +x /usr/local/bin/openvpn-install.sh
 
-# 下载 frpc 最新版本
-RUN wget -qO- https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz | tar xz && \
-    mv frpc /usr/local/bin/frpc && \
+# 下载 frpc 最新版本并验证下载
+RUN wget https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz -O /tmp/frpc.tar.gz && \
+    ls -lh /tmp && \
+    tar -xzvf /tmp/frpc.tar.gz -C /tmp && \
+    ls -lh /tmp && \
+    mv /tmp/frpc /usr/local/bin/frpc && \
     chmod +x /usr/local/bin/frpc
 
 # 克隆 OpenVPN Web UI (palark/ovpn-admin)
