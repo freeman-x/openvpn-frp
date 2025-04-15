@@ -32,6 +32,7 @@ jobs:
 
       # 4. 设置执行权限
       - name: Set execute permissions for entrypoint.sh
+        working-directory: ./docker
         run: chmod +x entrypoint.sh
 
       # 5. 构建 Docker 镜像
