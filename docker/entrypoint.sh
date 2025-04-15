@@ -32,11 +32,53 @@ start_openvpn() {
 
 #######################################
 # 函数：启动 FRPC（如果启用）
+# - 自动下载安装 frpc（仅首次）
+# - 生成 frpc.toml 配置
+# - 启动 frpc 后台运行
 #######################################
 start_frpc() {
   if [[ "$INSTALL_FRPC" == "true" ]]; then
-    echo "🔧 检测到 INSTALL_FRPC=true，正在生成 frpc 配置..."
+    echo "🔧 检测到 INSTALL_FRPC=true，准备安装并启动 frpc..."
 
+    # 自动下载安装 frpc（如果未安装）
+    if ! command -v frpc &> /dev/null; then
+      echo "📦 frpc 未安装，正在自动下载安装..."
+
+      ARCH=$(uname -m)
+      FRP_VERSION="0.61.2"
+      TMP_DIR="/tmp/frp_install"
+
+      mkdir -p "$TMP_DIR"
+      cd "$TMP_DIR"
+
+      if [ "$ARCH" = "x86_64" ]; then
+          echo "[INFO] Downloading frpc for x86_64..."
+          curl -LO "https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_amd64.tar.gz"
+          TARBALL="frp_${FRP_VERSION}_linux_amd64.tar.gz"
+      elif [ "$ARCH" = "aarch64" ]; then
+          echo "[INFO] Downloading frpc for aarch64..."
+          curl -LO "https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_arm64.tar.gz"
+          TARBALL="frp_${FRP_VERSION}_linux_arm64.tar.gz"
+      else
+          echo "[ERROR] 不支持的架构: $ARCH"
+          exit 1
+      fi
+
+      echo "[INFO] 解压 $TARBALL ..."
+      tar -xzvf "$TARBALL" -C "$TMP_DIR"
+
+      echo "[INFO] 安装 frpc 到 /usr/local/bin ..."
+      mv "$TMP_DIR"/frp_${FRP_VERSION}_linux_*/frpc /usr/local/bin/frpc
+      chmod +x /usr/local/bin/frpc
+
+      echo "[INFO] 清理临时文件 ..."
+      rm -rf "$TMP_DIR"
+    else
+      echo "✅ frpc 已安装，跳过下载"
+    fi
+
+    echo "📝 生成 frpc 配置文件 ..."
+    mkdir -p /etc/frp
     cat <<EOF > /etc/frp/frpc.toml
 serverAddr = "${FRPS_SERVER}"
 serverPort = ${FRPS_PORT}
@@ -53,7 +95,7 @@ EOF
     echo "🚀 启动 frpc ..."
     frpc -c /etc/frp/frpc.toml > /var/log/openvpn/frpc.log 2>&1 &
   else
-    echo "🟡 未启用 frpc，跳过"
+    echo "🟡 未启用 frpc（INSTALL_FRPC != true），跳过"
   fi
 }
 
