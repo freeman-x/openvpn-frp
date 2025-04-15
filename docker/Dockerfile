@@ -27,23 +27,14 @@ RUN apt-get update && \
 RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
     chmod +x /usr/local/bin/openvpn-install.sh
 
-# 选择并下载 frpc 对应平台版本
-RUN echo "Current architecture: $(uname -m)" && \
-    ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then \
-        echo "Downloading frpc for x86_64"; \
-        curl -LO https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        echo "Downloading frpc for aarch64"; \
-        curl -LO https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_arm64.tar.gz; \
-    else \
-        echo "Unsupported architecture: $ARCH"; exit 1; \
-    fi && \
-    ls -lh /tmp && \
-    tar -xzvf /tmp/frpc.tar.gz -C /tmp && \
-    ls -lh /tmp && \
-    mv /tmp/frpc /usr/local/bin/frpc && \
-    chmod +x /usr/local/bin/frpc
+# 复制安装脚本到容器
+COPY install_frpc.sh /usr/local/bin/install_frpc.sh
+
+# 使安装脚本可执行
+RUN chmod +x /usr/local/bin/install_frpc.sh
+
+# 执行安装脚本
+RUN /usr/local/bin/install_frpc.sh
 
 # 克隆 OpenVPN Web UI (palark/ovpn-admin)
 RUN git clone https://github.com/palark/ovpn-admin.git /opt/ovpn-admin
@@ -60,3 +51,6 @@ EXPOSE 1194 8080 6000
 
 # 设置容器启动入口
 ENTRYPOINT ["/entrypoint.sh"]
+
+# 设置容器启动时的默认命令
+CMD ["bash"]
