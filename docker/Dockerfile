@@ -28,11 +28,14 @@ RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/
     chmod +x /usr/local/bin/openvpn-install.sh
 
 # 选择并下载 frpc 对应平台版本
-RUN ARCH=$(uname -m) && \
+RUN echo "Current architecture: $(uname -m)" && \
+    ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        wget https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz -O /tmp/frpc.tar.gz; \
+        echo "Downloading frpc for x86_64"; \
+        curl -LO https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz -o /tmp/frpc.tar.gz; \
     elif [ "$ARCH" = "aarch64" ]; then \
-        wget https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_arm64.tar.gz -O /tmp/frpc.tar.gz; \
+        echo "Downloading frpc for aarch64"; \
+        curl -LO https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_arm64.tar.gz -o /tmp/frpc.tar.gz; \
     else \
         echo "Unsupported architecture: $ARCH"; exit 1; \
     fi && \
