@@ -43,9 +43,11 @@ jobs:
           file: ${{ env.DOCKERFILE_PATH }}  # 指定 Dockerfile 路径
           push: true  # 构建完成后，自动将镜像推送到 Docker Hub
           platforms: linux/amd64,linux/arm64  # 构建支持的多平台（amd64 和 arm64）
+          # 推送 latest 标签
+          # 推送版本标签（例如 v1.1）
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest  # 推送 latest 标签
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}  # 推送版本标签（例如 v1.1）
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
 
       # 步骤5：打印完成信息，表示工作流执行成功
       - name: ✅ Done
