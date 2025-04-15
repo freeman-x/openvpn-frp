@@ -1,0 +1,59 @@
+# 工作流的名称，GitHub 上显示为 “Build and Push Multi-Arch Docker Image”
+name: Build and Push Multi-Arch Docker Image
+
+# 工作流触发条件
+on:
+  # 触发条件1：push 到 main 分支，并且 docker 文件夹内或者 workflow 配置文件本身有修改
+  push:
+    branches:
+      - main  # 仅当推送到 main 分支时触发
+    paths:
+      - 'docker/**'  # 仅当 docker 文件夹内文件发生更改时触发
+      - '.github/workflows/docker-build.yml'  # 或者该工作流文件本身有修改时触发
+
+  # 触发条件2：手动运行工作流
+  workflow_dispatch:
+
+# 设置一些环境变量，方便在后续的步骤中使用
+env:
+  IMAGE_NAME: openvpn-frp  # 镜像名称
+  DOCKERFILE_PATH: docker/Dockerfile  # Dockerfile 路径
+  CONTEXT: ./docker  # 构建上下文路径（即存放 Dockerfile 的文件夹）
+  VERSION: v1.1  # 当前镜像的版本号（可以修改为不同版本号）
+
+# 任务定义：这是构建和推送 Docker 镜像的步骤
+jobs:
+  build:
+    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 环境进行构建
+
+    steps:
+      # 步骤1：从 GitHub 仓库中拉取代码
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v3  # 使用官方的 checkout 动作拉取代码
+
+      # 步骤2：登录到 Docker Hub
+      - name: 🔐 Log in to Docker Hub
+        uses: docker/login-action@v3  # 使用 Docker 官方的登录动作
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}  # Docker Hub 用户名（需配置为 GitHub secrets）
+          password: ${{ secrets.DOCKERHUB_TOKEN }}     # Docker Hub Token（建议使用 token 而非密码）
+
+      # 步骤3：设置 Docker Buildx（启用多平台构建）
+      - name: 🛠️ Set up Docker Buildx (支持多平台构建)
+        uses: docker/setup-buildx-action@v3  # 使用官方的 Buildx 设置动作，启用多平台构建功能
+
+      # 步骤4：构建并推送多平台 Docker 镜像
+      - name: 📦 Build and Push Multi-Platform Image
+        uses: docker/build-push-action@v5  # 使用官方的构建和推送动作
+        with:
+          context: ${{ env.CONTEXT }}  # 构建上下文路径，指向包含 Dockerfile 的目录
+          file: ${{ env.DOCKERFILE_PATH }}  # 指定 Dockerfile 路径
+          push: true  # 构建完成后，自动将镜像推送到 Docker Hub
+          platforms: linux/amd64,linux/arm64  # 构建支持的多平台（amd64 和 arm64）
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest  # 推送 latest 标签
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}  # 推送版本标签（例如 v1.1）
+
+      # 步骤5：打印完成信息，表示工作流执行成功
+      - name: ✅ Done
+        run: echo "✅ Image ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:v1.1 & latest built and pushed!"  # 打印推送成功的信息
