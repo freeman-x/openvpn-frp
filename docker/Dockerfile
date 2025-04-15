@@ -24,6 +24,7 @@ RUN apt-get update && \
 
 # 设置默认环境变量（用户可以在运行时通过 -e 来覆盖这些值）
 # ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+ENV INSTALL_FRPC="false"
 ENV FRP_SERVER_ADDR="frps.example.com"
 ENV FRP_SERVER_PORT="7000"
 ENV FRP_TOKEN="your_default_token"
