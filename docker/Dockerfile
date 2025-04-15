@@ -9,7 +9,6 @@ RUN apt-get update && \
     apt-get install -y \
         curl \
         iptables \
-        openvpn \
         unzip \
         git \
         cron \
@@ -35,15 +34,6 @@ ENV FRPC_REMOTE_PORT="6000"
 # 下载并安装 Nyr 的 OpenVPN 安装脚本
 RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
     chmod +x /usr/local/bin/openvpn-install.sh
-
-# 复制安装脚本到容器
-COPY install_frpc.sh /usr/local/bin/install_frpc.sh
-
-# 使安装脚本可执行
-RUN chmod +x /usr/local/bin/install_frpc.sh
-
-# 执行安装脚本
-RUN /usr/local/bin/install_frpc.sh
 
 # 克隆 OpenVPN Web UI (palark/ovpn-admin)
 RUN git clone https://github.com/palark/ovpn-admin.git /opt/ovpn-admin
