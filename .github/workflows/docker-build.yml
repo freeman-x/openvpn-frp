@@ -35,8 +35,8 @@ jobs:
       - name: 🔐 Log in to Docker Hub
         uses: docker/login-action@v3  # 使用 Docker 官方的登录动作
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}  # Docker Hub 用户名（需配置为 GitHub secrets）
-          password: ${{ secrets.DOCKERHUB_TOKEN }}     # Docker Hub Token（建议使用 token 而非密码）
+          username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub 用户名（需配置为 GitHub secrets）
+          password: ${{ secrets.DOCKER_PASSWORD }}     # Docker Hub Token（建议使用 token 而非密码）
 
       # 步骤3：设置 Docker Buildx（启用多平台构建）
       - name: 🛠️ Set up Docker Buildx (支持多平台构建)
@@ -51,9 +51,9 @@ jobs:
           push: true  # 构建完成后，自动将镜像推送到 Docker Hub
           platforms: linux/amd64,linux/arm64  # 构建支持的多平台（amd64 和 arm64）
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest  # 推送 latest 标签
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}  # 推送版本标签（例如 v1.1）
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest  # 推送 latest 标签
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}  # 推送版本标签（例如 v1.1）
 
       # 步骤5：打印完成信息，表示工作流执行成功
       - name: ✅ Done
-        run: echo "✅ Image ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:v1.1 & latest built and pushed!"  # 打印推送成功的信息
+        run: echo "✅ Image ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:v1.1 & latest built and pushed!"  # 打印推送成功的信息
