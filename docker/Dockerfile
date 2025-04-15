@@ -43,11 +43,8 @@ RUN mkdir -p /etc/openvpn /var/log/openvpn /etc/frp
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# 以下为常见默认端口
-EXPOSE 1194/udp        # OpenVPN 默认 UDP 端口
-EXPOSE 1194/tcp        # OpenVPN 可选 TCP 模式端口
-EXPOSE 8080            # ovpn-admin Web UI 端口
-EXPOSE 6000            # frpc 远程端口
+# 暴露常用端口
+EXPOSE 1194 8080 6000
 
 # 设置容器启动入口
 ENTRYPOINT ["/entrypoint.sh"]
