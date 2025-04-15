@@ -47,10 +47,7 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 1194/udp        # OpenVPN 默认 UDP 端口
 EXPOSE 1194/tcp        # OpenVPN 可选 TCP 模式端口
 EXPOSE 8080            # ovpn-admin Web UI 端口
-EXPOSE 9000            # frpc 示例端口
-
-# 可选：再暴露一个用于自定义 frpc 映射的通用端口（不指定协议，方便扩展）
-EXPOSE 7000-7100       # 提供一段可能的 frpc 映射范围（根据实际需求可调）
+EXPOSE 6000            # frpc 远程端口
 
 # 设置容器启动入口
 ENTRYPOINT ["/entrypoint.sh"]
