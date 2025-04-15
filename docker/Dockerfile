@@ -1,60 +1,56 @@
-# 使用轻量版 Debian 作为基础镜像
+# 使用一个轻量级 Debian 作为基础镜像
 FROM debian:bullseye-slim
 
-LABEL maintainer="yourname <you@example.com>"
-LABEL description="Docker image for OpenVPN + FRPC + Web UI"
-
-# 设置环境变量
+# 设置环境变量，避免构建过程中的交互提示
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安装必要组件
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openvpn \
-    iptables \
-    iproute2 \
-    curl \
-    wget \
-    unzip \
-    ca-certificates \
-    jq \
-    git \
-    net-tools \
-    cron \
-    bash \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+# 安装必要软件包（OpenVPN 相关工具、frpc 运行依赖、web UI 依赖）
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        iptables \
+        openvpn \
+        unzip \
+        git \
+        cron \
+        iproute2 \
+        net-tools \
+        procps \
+        wget \
+        lsb-release \
+        gnupg \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# ========= 下载 Nyr 的 openvpn-install 脚本 =========
-WORKDIR /opt
-RUN curl -O https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh \
- && chmod +x openvpn-install.sh
+# 下载并安装 Nyr 的 OpenVPN 安装脚本
+RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
+    chmod +x /usr/local/bin/openvpn-install.sh
 
-# ========= 下载并解压 ovpn-admin Web UI =========
-RUN wget -O ovpn-admin.zip https://github.com/palark/ovpn-admin/releases/latest/download/ovpn-admin-linux.zip \
- && unzip ovpn-admin.zip -d /opt/ovpn-admin \
- && chmod +x /opt/ovpn-admin/ovpn-admin \
- && rm ovpn-admin.zip
+# 下载 frpc，可根据环境变量启用
+RUN wget -qO- https://github.com/fatedier/frp/releases/latest/download/frpc_linux_amd64.tar.gz | tar xz && \
+    mv frpc /usr/local/bin/frpc && \
+    chmod +x /usr/local/bin/frpc
 
-# ========= 安装 frpc（只下载，不自动运行） =========
-RUN mkdir -p /usr/local/frp \
- && curl -L https://github.com/fatedier/frp/releases/latest/download/frpc_linux_amd64.tar.gz -o frpc.tar.gz \
- && tar -zxvf frpc.tar.gz -C /usr/local/frp --strip-components=1 \
- && chmod +x /usr/local/frp/frpc \
- && rm frpc.tar.gz
+# 克隆 OpenVPN Web UI (palark/ovpn-admin)
+RUN git clone https://github.com/palark/ovpn-admin.git /opt/ovpn-admin
 
-# ========= 拷贝自定义脚本 =========
+# 创建运行时需要的目录
+RUN mkdir -p /etc/openvpn /var/log/openvpn /etc/frp
+
+# 拷贝启动脚本
+# 注意：Dockerfile 相对路径是相对于 Docker 上下文，所以 entrypoint.sh 要从 ./docker 拷贝
 COPY entrypoint.sh /entrypoint.sh
-COPY print-status.sh /usr/local/bin/print-status.sh
-RUN chmod +x /entrypoint.sh /usr/local/bin/print-status.sh
+RUN chmod +x /entrypoint.sh
 
-# ========= 创建 OpenVPN 配置目录 =========
-RUN mkdir -p /etc/openvpn
+# 以下为常见默认端口
+EXPOSE 1194/udp        # OpenVPN 默认 UDP 端口
+EXPOSE 1194/tcp        # OpenVPN 可选 TCP 模式端口
+EXPOSE 8080            # ovpn-admin Web UI 端口
+EXPOSE 9000            # frpc 示例端口
 
-# ========= 设置容器入口 =========
+# 可选：再暴露一个用于自定义 frpc 映射的通用端口（不指定协议，方便扩展）
+EXPOSE 7000-7100       # 提供一段可能的 frpc 映射范围（根据实际需求可调）
+
+# 设置容器启动入口
 ENTRYPOINT ["/entrypoint.sh"]
-
-# ========= 暴露必要端口 =========
-EXPOSE 1194/udp 8080
-
-# ========= 设定默认命令（预防） =========
-CMD ["bash"]
