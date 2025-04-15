@@ -23,6 +23,15 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# 设置默认环境变量（用户可以在运行时通过 -e 来覆盖这些值）
+# ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+ENV FRP_SERVER_ADDR="frps.example.com"
+ENV FRP_SERVER_PORT="7000"
+ENV FRP_TOKEN="your_default_token"
+ENV OVPN_PORT="1194"
+ENV FRPC_REMOTE_PORT="6000"
+# ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
 # 下载并安装 Nyr 的 OpenVPN 安装脚本
 RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
     chmod +x /usr/local/bin/openvpn-install.sh
