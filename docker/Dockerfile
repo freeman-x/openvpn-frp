@@ -27,8 +27,8 @@ RUN apt-get update && \
 RUN curl -o /usr/local/bin/openvpn-install.sh https://raw.githubusercontent.com/Nyr/openvpn-install/master/openvpn-install.sh && \
     chmod +x /usr/local/bin/openvpn-install.sh
 
-# 下载 frpc，可根据环境变量启用
-RUN wget -qO- https://github.com/fatedier/frp/releases/latest/download/frpc_linux_amd64.tar.gz | tar xz && \
+# 下载 frpc 最新版本
+RUN wget -qO- https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_linux_amd64.tar.gz | tar xz && \
     mv frpc /usr/local/bin/frpc && \
     chmod +x /usr/local/bin/frpc
 
@@ -39,7 +39,6 @@ RUN git clone https://github.com/palark/ovpn-admin.git /opt/ovpn-admin
 RUN mkdir -p /etc/openvpn /var/log/openvpn /etc/frp
 
 # 拷贝启动脚本
-# 注意：Dockerfile 相对路径是相对于 Docker 上下文，所以 entrypoint.sh 要从 ./docker 拷贝
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
